@@ -9,6 +9,7 @@ import os
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
 os.environ["PINECONE_ENVIRONMENT"] = st.secrets["PINECONE_ENVIRONMENT"]
+os.environ["PINECONE_REGION"] = st.secrets["PINECONE_REGION"]
 
 # ============================================================
 # NORMAL IMPORTS
@@ -19,19 +20,16 @@ from typing import Any, Dict, List
 from langchain.agents import create_agent
 from langchain.messages import ToolMessage
 from langchain.tools import tool
-
+from langchain_pinecone import PineconeEmbeddings
 from langchain_pinecone import PineconeVectorStore
-# from langchain_ollama import OllamaEmbeddings
+
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_ollama.embeddings import OllamaEmbeddings
 
 # ============================================================
 # 1. Embeddings (Local via Ollama → works in Cloud)
 # ============================================================
 
 # embeddings = OllamaEmbeddings(model="nomic-embed-text")
-
-from langchain_pinecone import PineconeEmbeddings
 embeddings = PineconeEmbeddings(model="llama-text-embed-v2")
 
 
