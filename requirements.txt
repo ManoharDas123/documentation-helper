@@ -74,6 +74,7 @@ langchain-google-genai==4.2.1; python_full_version >= '3.10.0' and python_full_v
 langchain-openai==1.1.11; python_full_version >= '3.10.0' and python_full_version < '4.0.0'
 langchain-pinecone==0.2.13; python_version < '3.14' and python_version >= '3.9'
 langchain-tavily==0.2.17; python_version >= '3.10' and python_version < '4.0'
+langchain-ollama>=0.1.0
 langchain-text-splitters==1.1.1; python_full_version >= '3.10.0' and python_full_version < '4.0.0'
 langchainhub==0.1.21; python_full_version >= '3.8.1' and python_version < '4.0'
 langdetect==1.0.9
