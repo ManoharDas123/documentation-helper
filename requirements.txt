@@ -1,25 +1,27 @@
-# Core
-streamlit==1.55.0
-python-dotenv
-tiktoken
-pydantic<3.0.0
+# Must be first to avoid being skipped
+langchain-ollama==0.1.0
+pinecone-client>=6.0.0,<8.0.0
+langchain-pinecone==0.2.13
 
 # LangChain ecosystem
 langchain==1.2.13
 langchain-core==1.2.20
 langchain-community==0.4.1
 langchain-google-genai==4.2.1
-langchain-pinecone==0.2.13
-langchain-ollama==0.1.0
+langchain-openai==1.1.11
+langchain-chroma==1.1.0
+langchain-classic==1.0.3
+langchain-text-splitters==1.1.1
+langchainhub==0.1.21
+langchain-tavily==0.2.17
 
-# Vector DB
-pinecone-client>=6.0.0,<8.0.0
-
-# LLM Providers
+# Core
+streamlit==1.55.0
+python-dotenv
+tiktoken
+pydantic<3.0.0
 google-generativeai
 
-# Optional tools
-unstructured
-firecrawl-py
+# Optional lightweight dependencies
 pillow
 nltk
