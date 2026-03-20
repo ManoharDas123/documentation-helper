@@ -26,6 +26,7 @@ langchain-tavily = "*"
 langchain-pinecone = "*"
 certifi = "*"
 langchain-chroma = "*"
+langchain-google-genai = "*"
 python-dotenv = "*"
 
 [dev-packages]
