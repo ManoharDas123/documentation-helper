@@ -21,8 +21,9 @@ from langchain.messages import ToolMessage
 from langchain.tools import tool
 
 from langchain_pinecone import PineconeVectorStore
-from langchain_ollama import OllamaEmbeddings
+# from langchain_ollama import OllamaEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_ollama.embeddings import OllamaEmbeddings
 
 # ============================================================
 # 1. Embeddings (Local via Ollama → works in Cloud)
