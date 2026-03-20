@@ -1,3 +1,4 @@
+langchain-ollama
 -i https://pypi.org/simple
 aiofiles==25.1.0; python_version >= '3.9'
 aiohappyeyeballs==2.6.1; python_version >= '3.9'
