@@ -32,7 +32,7 @@ from langchain_ollama.embeddings import OllamaEmbeddings
 # embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
 from langchain_pinecone import PineconeEmbeddings
-embeddings = PineconeEmbeddings(model="multilingual-e5-base")
+embeddings = PineconeEmbeddings(model="llama-text-embed-v2")
 
 
 # ============================================================
