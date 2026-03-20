@@ -29,7 +29,11 @@ from langchain_ollama.embeddings import OllamaEmbeddings
 # 1. Embeddings (Local via Ollama → works in Cloud)
 # ============================================================
 
-embeddings = OllamaEmbeddings(model="nomic-embed-text")
+# embeddings = OllamaEmbeddings(model="nomic-embed-text")
+
+from langchain_pinecone import PineconeEmbeddings
+embeddings = PineconeEmbeddings(model="multilingual-e5-large")
+
 
 # ============================================================
 # 2. Vector DB (Pinecone)
