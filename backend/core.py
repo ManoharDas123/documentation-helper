@@ -123,10 +123,17 @@
 #  Must appear BEFORE ANY imports that make HTTPS calls.
 # ============================================================
 
+# import os
+# import ssl
+# import certifi
+# import urllib3
+
+import streamlit as st
 import os
-import ssl
-import certifi
-import urllib3
+
+os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
+os.environ["PINECONE_ENVIRONMENT"] = st.secrets["PINECONE_ENVIRONMENT"]
 
 # Use Windows system certificates
 try:
@@ -134,13 +141,13 @@ try:
 except Exception:
     pass  # pip-system-certs is optional but recommended
 
-# Override SSL verification for Pinecone + Requests + urllib3
-os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
-os.environ["SSL_CERT_FILE"] = certifi.where()
-os.environ["PINECONE_SSL_VERIFY"] = "false"
+# # Override SSL verification for Pinecone + Requests + urllib3
+# os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
+# os.environ["SSL_CERT_FILE"] = certifi.where()
+# os.environ["PINECONE_SSL_VERIFY"] = "false"
 
-ssl._create_default_https_context = ssl._create_unverified_context
-urllib3.disable_warnings()
+# ssl._create_default_https_context = ssl._create_unverified_context
+# urllib3.disable_warnings()
 
 # ============================================================
 # NORMAL IMPORTS
