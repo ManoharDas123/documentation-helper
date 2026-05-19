@@ -22,25 +22,17 @@ from typing import Any, Dict, List
 from langchain.agents import create_agent
 from langchain.messages import ToolMessage
 from langchain.tools import tool
-from langchain_pinecone import PineconeEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-from backend.rag_config import (
-    PINECONE_EMBED_DIMENSION,
-    PINECONE_EMBED_MODEL,
-    PINECONE_INDEX_NAME,
-)
+from backend.rag_config import PINECONE_INDEX_NAME, make_pinecone_embeddings
 
 # ============================================================
 # 1. Embeddings (Pinecone Inference — same model/dim as ingestion)
 # ============================================================
 
-embeddings = PineconeEmbeddings(
-    model=PINECONE_EMBED_MODEL,
-    dimension=PINECONE_EMBED_DIMENSION,
-)
+embeddings = make_pinecone_embeddings()
 
 # #region agent log
 _AGENT_EMB_DIM_LOGGED = False
@@ -112,7 +104,10 @@ def retrieve_context(query: str):
                 {
                     "index_name": PINECONE_INDEX_NAME,
                     "embedding_model": getattr(embeddings, "model", None),
-                    "embedding_dimension_param": getattr(embeddings, "dimension", None),
+                    "embedding_dimension_field": getattr(embeddings, "dimension", None),
+                    "query_params_dimension": (getattr(embeddings, "query_params", {}) or {}).get(
+                        "dimension"
+                    ),
                     "query_vector_dim": _dim,
                 },
                 "H1",
