@@ -13,6 +13,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_tavily import TavilyCrawl, TavilyExtract, TavilyMap
 from torch.utils.hipify.hipify_python import meta_data
+from langchain_pinecone import PineconeEmbeddings
 
 from logger import (Colors, log_error, log_header, log_info, log_success,
                     log_warning)
@@ -25,6 +26,7 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
+# embeddings = PineconeEmbeddings(model="llama-text-embed-v2")
 # embeddings = OpenAIEmbeddings(
 #     model="text-embedding-3-small",
 #     show_progress_bar=False,
@@ -33,7 +35,7 @@ embeddings = OllamaEmbeddings(model="nomic-embed-text")
 # )
 # chroma = Chroma(persist_directory="chroma_db", embedding_function=embeddings)
 vectorstore = PineconeVectorStore(
-    index_name="langchain-docs-helper-pinecode", embedding=embeddings
+    index_name="langchain-ollma-index", embedding=embeddings
 )
 tavily_extract = TavilyExtract()
 tavily_map = TavilyMap(max_depth=5, max_breadth=20, max_pages=1000)
