@@ -27,13 +27,20 @@ from langchain_pinecone import PineconeVectorStore
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+from backend.rag_config import (
+    PINECONE_EMBED_DIMENSION,
+    PINECONE_EMBED_MODEL,
+    PINECONE_INDEX_NAME,
+)
+
 # ============================================================
-# 1. Embeddings (Local via Ollama → works in Cloud)
+# 1. Embeddings (Pinecone Inference — same model/dim as ingestion)
 # ============================================================
 
-# embeddings = OllamaEmbeddings(model="nomic-embed-text")
-PINECONE_INDEX_NAME = "langchain-ollma-index"
-embeddings = PineconeEmbeddings(model="llama-text-embed-v2")
+embeddings = PineconeEmbeddings(
+    model=PINECONE_EMBED_MODEL,
+    dimension=PINECONE_EMBED_DIMENSION,
+)
 
 # #region agent log
 _AGENT_EMB_DIM_LOGGED = False
