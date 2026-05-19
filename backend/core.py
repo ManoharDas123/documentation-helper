@@ -15,6 +15,8 @@ os.environ["PINECONE_REGION"] = st.secrets["PINECONE_REGION"]
 # NORMAL IMPORTS
 # ============================================================
 
+import json
+import time
 from typing import Any, Dict, List
 
 from langchain.agents import create_agent
@@ -30,7 +32,38 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 # ============================================================
 
 # embeddings = OllamaEmbeddings(model="nomic-embed-text")
+PINECONE_INDEX_NAME = "langchain-ollma-index"
 embeddings = PineconeEmbeddings(model="llama-text-embed-v2")
+
+# #region agent log
+_AGENT_EMB_DIM_LOGGED = False
+
+
+def _agent_dbg_log(
+    location: str,
+    message: str,
+    data: dict,
+    hypothesis_id: str,
+    run_id: str = "pre-fix",
+) -> None:
+    try:
+        _log_path = os.path.join(os.path.dirname(__file__), "..", "debug-6d7fad.log")
+        payload = {
+            "sessionId": "6d7fad",
+            "runId": run_id,
+            "hypothesisId": hypothesis_id,
+            "location": location,
+            "message": message,
+            "data": data,
+            "timestamp": int(time.time() * 1000),
+        }
+        with open(_log_path, "a", encoding="utf-8") as _f:
+            _f.write(json.dumps(payload) + "\n")
+    except Exception:
+        pass
+
+
+# #endregion
 
 
 # ============================================================
@@ -38,7 +71,7 @@ embeddings = PineconeEmbeddings(model="llama-text-embed-v2")
 # ============================================================
 
 vectorstore = PineconeVectorStore(
-    index_name="langchain-docs-helper-pinecode",
+    index_name=PINECONE_INDEX_NAME,
     embedding=embeddings,
 )
 
@@ -58,6 +91,33 @@ model = ChatGoogleGenerativeAI(
 @tool(response_format="content_and_artifact")
 def retrieve_context(query: str):
     """Retrieve relevant LangChain documentation for RAG."""
+
+    # #region agent log
+    global _AGENT_EMB_DIM_LOGGED
+    if not _AGENT_EMB_DIM_LOGGED:
+        _AGENT_EMB_DIM_LOGGED = True
+        try:
+            _probe = embeddings.embed_query("__agent_dim_probe__")
+            _dim = len(_probe) if isinstance(_probe, list) else getattr(_probe, "shape", [None])[-1]
+            _agent_dbg_log(
+                "backend/core.py:retrieve_context",
+                "embedding query vector dimension probe",
+                {
+                    "index_name": PINECONE_INDEX_NAME,
+                    "embedding_model": getattr(embeddings, "model", None),
+                    "embedding_dimension_param": getattr(embeddings, "dimension", None),
+                    "query_vector_dim": _dim,
+                },
+                "H1",
+            )
+        except Exception as _probe_err:
+            _agent_dbg_log(
+                "backend/core.py:retrieve_context",
+                "embedding probe failed",
+                {"error_type": type(_probe_err).__name__, "error": str(_probe_err)[:200]},
+                "H3",
+            )
+    # #endregion
 
     retrieved_docs = vectorstore.as_retriever().invoke(query, k=4)
 
