@@ -1,6 +1,8 @@
 import asyncio
+import json
 import os
 import ssl
+import time
 from typing import Any, Dict, List
 
 import certifi
@@ -9,13 +11,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_pinecone import PineconeVectorStore
 from langchain_tavily import TavilyCrawl, TavilyExtract, TavilyMap
-from langchain_pinecone import PineconeEmbeddings
-
-from backend.rag_config import (
-    PINECONE_EMBED_DIMENSION,
-    PINECONE_EMBED_MODEL,
-    PINECONE_INDEX_NAME,
-)
+from backend.rag_config import PINECONE_INDEX_NAME, make_pinecone_embeddings
 from logger import (Colors, log_error, log_header, log_info, log_success,
                     log_warning)
 
@@ -27,11 +23,7 @@ os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
 # Same embedder + dimension as backend/core.py (required for Pinecone + RAG quality).
-# If you previously indexed with Ollama/nomic, delete index vectors and re-ingest.
-embeddings = PineconeEmbeddings(
-    model=PINECONE_EMBED_MODEL,
-    dimension=PINECONE_EMBED_DIMENSION,
-)
+embeddings = make_pinecone_embeddings()
 vectorstore = PineconeVectorStore(index_name=PINECONE_INDEX_NAME, embedding=embeddings)
 tavily_extract = TavilyExtract()
 tavily_map = TavilyMap(max_depth=5, max_breadth=20, max_pages=1000)
@@ -39,6 +31,52 @@ tavily_crawl = TavilyCrawl()
 
 async def index_documents_async(documents: List[Document], batch_size: int = 50):
     """Process documents in batches asynchronously."""
+    # #region agent log
+    try:
+        _probe_vec = embeddings.embed_documents(["__ingest_dim_probe__"])[0]
+        _probe_dim = len(_probe_vec)
+        _log_path = os.path.join(os.path.dirname(__file__), "debug-6d7fad.log")
+        with open(_log_path, "a", encoding="utf-8") as _f:
+            _f.write(
+                json.dumps(
+                    {
+                        "sessionId": "6d7fad",
+                        "runId": "ingest-probe",
+                        "hypothesisId": "H5",
+                        "location": "ingestion.py:index_documents_async",
+                        "message": "document embed dimension probe",
+                        "data": {
+                            "index_name": PINECONE_INDEX_NAME,
+                            "document_params": getattr(embeddings, "document_params", {}),
+                            "document_vector_dim": _probe_dim,
+                        },
+                        "timestamp": int(time.time() * 1000),
+                    }
+                )
+                + "\n"
+            )
+    except Exception as _e:
+        try:
+            _log_path = os.path.join(os.path.dirname(__file__), "debug-6d7fad.log")
+            with open(_log_path, "a", encoding="utf-8") as _f:
+                _f.write(
+                    json.dumps(
+                        {
+                            "sessionId": "6d7fad",
+                            "runId": "ingest-probe",
+                            "hypothesisId": "H5",
+                            "location": "ingestion.py:index_documents_async",
+                            "message": "ingest probe failed",
+                            "data": {"error": str(_e)[:300]},
+                            "timestamp": int(time.time() * 1000),
+                        }
+                    )
+                    + "\n"
+                )
+        except Exception:
+            pass
+    # #endregion
+
     log_header("VECTOR STORAGE PHASE")
     log_info(
         f"📚 VectorStore Indexing: Preparing to add {len(documents)} documents to vector store",
