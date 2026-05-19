@@ -134,6 +134,35 @@ def retrieve_context(query: str):
 # 5. MAIN LLM CALL
 # ============================================================
 
+
+def _assistant_content_to_text(content: Any) -> str:
+    """Turn LangChain message content into plain text for the UI.
+
+    Gemini (e.g. via ``ChatGoogleGenerativeAI``) may return a list of blocks such as
+    ``{'type': 'text', 'text': '...', 'extras': {'signature': '...'}}``. Using ``str()``
+    on that list exposes ``signature``; we only join human-readable ``text`` fields.
+    """
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        parts: List[str] = []
+        for block in content:
+            if isinstance(block, str) and block.strip():
+                parts.append(block.strip())
+            elif isinstance(block, dict):
+                text = block.get("text")
+                if isinstance(text, str) and text.strip():
+                    parts.append(text.strip())
+            else:
+                text = getattr(block, "text", None)
+                if isinstance(text, str) and text.strip():
+                    parts.append(text.strip())
+        return "\n\n".join(parts).strip()
+    return str(content).strip()
+
+
 def run_llm(query: str) -> Dict[str, Any]:
 
     system_prompt = (
@@ -149,7 +178,7 @@ def run_llm(query: str) -> Dict[str, Any]:
     messages = [{"role": "user", "content": query}]
     response = agent.invoke({"messages": messages})
 
-    answer = response["messages"][-1].content
+    answer = _assistant_content_to_text(response["messages"][-1].content)
 
     context_docs = []
     for message in response["messages"]:
