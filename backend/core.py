@@ -10,6 +10,12 @@ os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
 os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
 os.environ["PINECONE_ENVIRONMENT"] = st.secrets["PINECONE_ENVIRONMENT"]
 os.environ["PINECONE_REGION"] = st.secrets["PINECONE_REGION"]
+os.environ["LANGSMITH_TRACING"] = "true"
+os.environ["LANGSMITH_API_KEY"] = st.secrets["LANGSMITH_API_KEY"]
+os.environ["LANGSMITH_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGSMITH_API_KEY"]
+os.environ["LANGCHAIN_PROJECT"] = st.secrets["LANGSMITH_PROJECT"]
 
 # ============================================================
 # NORMAL IMPORTS
