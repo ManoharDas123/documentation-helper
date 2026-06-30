@@ -3,7 +3,7 @@
 Credentials and cookie settings are read from Streamlit Secrets:
 
     [credentials.usernames.<username>]
-    email, first_name, last_name, password (bcrypt hash)
+    email, first_name, last_name, password (bcrypt hash or plain text if auto_hash=True)
 
     [cookie]
     name, key, expiry_days
@@ -11,12 +11,22 @@ Credentials and cookie settings are read from Streamlit Secrets:
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Mapping
 
 import streamlit as st
 import streamlit_authenticator as stauth
+from streamlit_authenticator.utilities import LoginError
 
 _SESSION_AUTHENTICATOR = "authenticator"
+
+
+def _to_plain_dict(value: Any) -> Any:
+    """Recursively convert Streamlit SecretDict / AttrDict to plain Python types."""
+    if isinstance(value, Mapping):
+        return {str(k): _to_plain_dict(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_to_plain_dict(item) for item in value]
+    return value
 
 
 def _secrets_section(section: str) -> Dict[str, Any]:
@@ -25,7 +35,7 @@ def _secrets_section(section: str) -> Dict[str, Any]:
             f"Missing [{section}] in Streamlit Secrets. "
             "See .streamlit/secrets.toml.example for the required shape."
         )
-    return dict(st.secrets[section])
+    return _to_plain_dict(st.secrets[section])
 
 
 def _load_auth_config() -> Dict[str, Any]:
@@ -36,11 +46,19 @@ def _load_auth_config() -> Dict[str, Any]:
         if field not in cookie:
             raise KeyError(f"Missing cookie.{field} in Streamlit Secrets.")
 
-    if "usernames" not in credentials or not credentials["usernames"]:
+    usernames = credentials.get("usernames") or {}
+    if not usernames:
         raise KeyError(
             "Missing credentials.usernames in Streamlit Secrets. "
             "Add at least one named user."
         )
+
+    for username, user in usernames.items():
+        if not isinstance(user, dict) or not user.get("password"):
+            raise KeyError(
+                f"User '{username}' is missing a password in Streamlit Secrets. "
+                'Use password = "$2b$12$..." with double quotes around the bcrypt hash.'
+            )
 
     return {"credentials": credentials, "cookie": cookie}
 
@@ -55,7 +73,7 @@ def get_authenticator() -> stauth.Authenticate:
             cookie_name=str(cookie["name"]),
             cookie_key=str(cookie["key"]),
             cookie_expiry_days=float(cookie["expiry_days"]),
-            auto_hash=False,
+            auto_hash=True,
         )
     return st.session_state[_SESSION_AUTHENTICATOR]
 
@@ -82,15 +100,26 @@ def require_auth() -> str:
 
     Calls ``st.stop()`` when the user is not authenticated.
     """
-    authenticator = get_authenticator()
+    st.session_state.setdefault("logout", None)
+
+    try:
+        authenticator = get_authenticator()
+    except KeyError as exc:
+        st.error(f"Authentication configuration error: {exc}")
+        st.stop()
 
     try:
         authenticator.login(
             location="main",
             max_login_attempts=5,
         )
-    except Exception:
+    except LoginError as exc:
+        st.error(str(exc))
+        st.caption("Clear your browser cookies for this site or reboot the app, then try again.")
+        st.stop()
+    except Exception as exc:
         st.error("Authentication is temporarily unavailable. Please try again later.")
+        st.caption(f"Details: {exc}")
         st.stop()
 
     auth_status = st.session_state.get("authentication_status")
