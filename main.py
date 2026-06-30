@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
-from backend.core import run_llm
+
 import streamlit as st
+from backend.auth import get_display_name, render_logout, require_auth
 
 
 def _format_sources(context_docs: List[Any]) -> List[str]:
@@ -12,13 +13,18 @@ def _format_sources(context_docs: List[Any]) -> List[str]:
 
 
 st.set_page_config(page_title="LangChain Documentation Helper", layout="centered")
+username = require_auth()
 st.title("LangChain Documentation Helper")
+
+from backend.core import run_llm
 
 with st.sidebar:
     st.subheader("Session")
+    st.caption(f"signed in as **{get_display_name()}**")
     if st.button("Clear chat", use_container_width=True):
         st.session_state.pop("messages", None)
         st.rerun()
+    render_logout()
 
 if "messages" not in st.session_state:
     st.session_state.messages = [

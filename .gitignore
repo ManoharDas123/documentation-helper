@@ -9,6 +9,7 @@ __pycache__/
 Pipfile
 Pipfile.lock
 .streamlit/secrets.toml
+.streamlit/secrets.toml.example
 
 # Distribution / packaging
 .Python
